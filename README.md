@@ -2,6 +2,8 @@
 
 This provides a simple interface to get the HTML of a page after javascript is run on it.
 
+This library uses [chromedp](https://github.com/chromedp/chromedp)
+
 ## Usage
 
 ```go
