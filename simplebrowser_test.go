@@ -40,4 +40,6 @@ func TestChrome(t *testing.T) {
 		fmt.Println(html)
 		t.Errorf("Did not get changed content in div")
 	}
+
+	// TODO: Test with cookies and headers
 }
