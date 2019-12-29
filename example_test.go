@@ -10,7 +10,7 @@ import (
 )
 
 func ExampleGetPage() {
-	html, _ := GetPage(context.Background(), "https://google.com", []Cookie{}, map[string]interface{}{}, time.Second)
+	html, _ := GetPage(context.Background(), "https://google.com", nil, map[string]interface{}{}, time.Second)
 	fmt.Println(html)
 }
 
@@ -35,7 +35,7 @@ func ExampleGetPage_withContent() {
 	defer ts.Close()
 
 	// Get page and wait for javascript to change div
-	html, err := GetPage(context.Background(), ts.URL, []Cookie{}, map[string]interface{}{}, time.Second)
+	html, err := GetPage(context.Background(), ts.URL, nil, map[string]interface{}{}, time.Second)
 	if err != nil {
 		return
 	}

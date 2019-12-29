@@ -4,6 +4,7 @@ package simplebrowser
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -11,13 +12,8 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-type Cookie struct {
-	Name  string
-	Value string
-}
-
 // GetPage Get HTML of page after waiting waitTime for javascript to run
-func GetPage(ctx context.Context, URL string, cookies []Cookie, headers map[string]interface{}, waitTime time.Duration) (html string, err error) {
+func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers map[string]interface{}, waitTime time.Duration) (html string, err error) {
 	ctxN, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
@@ -33,7 +29,7 @@ func GetPage(ctx context.Context, URL string, cookies []Cookie, headers map[stri
 
 // setcookies returns a task to navigate to a host with the passed cookies set
 // on the network request.
-func setcookies(cookies []Cookie) chromedp.Action {
+func setcookies(cookies []http.Cookie) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
 		// create cookie expiration
 		expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))

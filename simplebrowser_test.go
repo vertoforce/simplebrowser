@@ -30,7 +30,7 @@ func TestChrome(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	html, err := GetPage(context.Background(), ts.URL, []Cookie{}, map[string]interface{}{}, time.Second)
+	html, err := GetPage(context.Background(), ts.URL, nil, map[string]interface{}{}, time.Second)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
