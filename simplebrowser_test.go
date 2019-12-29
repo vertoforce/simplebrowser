@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -26,11 +27,25 @@ const HTMLTest = `<html>
 
 func TestChrome(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("test")
+		if err != nil {
+			t.Errorf(err.Error())
+		} else {
+			if cookie.Value != "testValue" {
+				t.Errorf("Error getting test cookie")
+			}
+		}
 		w.Write([]byte(HTMLTest))
 	}))
 	defer ts.Close()
 
-	html, err := GetPage(context.Background(), ts.URL, nil, map[string]interface{}{}, time.Second)
+	URL, err := url.Parse(ts.URL)
+	if err != nil {
+		t.Errorf("Error parsing URL")
+		return
+	}
+
+	html, err := GetPage(context.Background(), ts.URL, []http.Cookie{{Name: "test", Value: "testValue", Domain: URL.Hostname(), Expires: time.Now().Add(time.Hour * 5000)}}, nil, time.Second)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -40,6 +55,4 @@ func TestChrome(t *testing.T) {
 		fmt.Println(html)
 		t.Errorf("Did not get changed content in div")
 	}
-
-	// TODO: Test with cookies and headers
 }
