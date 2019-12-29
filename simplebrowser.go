@@ -13,15 +13,22 @@ import (
 )
 
 // GetPage Get HTML of page after waiting waitTime for javascript to run
-func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers map[string]interface{}, waitTime time.Duration) (html string, err error) {
+func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration) (html string, err error) {
 	ctxN, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
+	if headers == nil {
+		headers = network.Headers{}
+	}
+	if cookies == nil {
+		cookies = []http.Cookie{}
+	}
+
 	err = chromedp.Run(ctxN,
+		setheaders(headers),
+		setcookies(cookies),
 		chromedp.Navigate(URL),
 		chromedp.Sleep(waitTime),
-		setcookies(cookies),
-		setheaders(headers),
 		chromedp.OuterHTML("html", &html),
 	)
 	return html, err
@@ -31,14 +38,13 @@ func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers map
 // on the network request.
 func setcookies(cookies []http.Cookie) chromedp.Action {
 	return chromedp.ActionFunc(func(ctx context.Context) error {
-		// create cookie expiration
-		expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 		// add cookies to chrome
 		for _, cookie := range cookies {
+			exp := cdp.TimeSinceEpoch(cookie.Expires)
 			success, err := network.SetCookie(cookie.Name, cookie.Value).
-				WithExpires(&expr).
-				WithDomain("localhost").
-				WithHTTPOnly(true).
+				WithExpires(&exp).
+				WithDomain(cookie.Domain).
+				WithHTTPOnly(cookie.HttpOnly).
 				Do(ctx)
 			if err != nil {
 				return err
@@ -52,9 +58,9 @@ func setcookies(cookies []http.Cookie) chromedp.Action {
 }
 
 // setheaders Returns Tasks to set headers
-func setheaders(headers map[string]interface{}) chromedp.Tasks {
+func setheaders(headers network.Headers) chromedp.Tasks {
 	return chromedp.Tasks{
 		network.Enable(),
-		network.SetExtraHTTPHeaders(network.Headers(headers)),
+		network.SetExtraHTTPHeaders(headers),
 	}
 }
