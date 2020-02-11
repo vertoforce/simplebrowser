@@ -27,3 +27,16 @@ func GetPageProxy(ctx context.Context, URL string, cookies []http.Cookie, header
 	)
 	return html, err
 }
+
+// GetPageScreenshot same as GetPage but takes a screenshot of the page
+func GetPageScreenshot(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration, proxy string) (pngScreenshot []byte, err error) {
+	err = runChromeDP(ctx,
+		URL,
+		cookies,
+		headers,
+		waitTime,
+		proxy,
+		chromedp.CaptureScreenshot(&pngScreenshot),
+	)
+	return pngScreenshot, err
+}
