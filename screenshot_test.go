@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"testing"
 	"time"
 
@@ -25,5 +24,5 @@ func TestScreenshot(t *testing.T) {
 	)
 	fmt.Println(err)
 
-	ioutil.WriteFile("out.png", picture, os.ModeAppend)
+	ioutil.WriteFile("out.png", picture, 0644)
 }

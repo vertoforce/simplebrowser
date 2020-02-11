@@ -14,7 +14,17 @@ import (
 
 // GetPage Get HTML of page after waiting waitTime for javascript to run
 func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration) (html string, err error) {
-	ctxN, cancel := chromedp.NewContext(ctx)
+	return GetPageProxy(ctx, URL, cookies, headers, waitTime, "")
+}
+
+// GetPageProxy is the same as GetPage but uses a proxy
+func GetPageProxy(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration, proxy string) (html string, err error) {
+	var cancel context.CancelFunc
+	if proxy != "" {
+		opts := append(chromedp.DefaultExecAllocatorOptions[:], chromedp.ProxyServer(proxy))
+		ctx, cancel = chromedp.NewExecAllocator(ctx, opts...)
+	}
+	ctx, cancel = chromedp.NewContext(ctx)
 	defer cancel()
 
 	if headers == nil {
@@ -24,7 +34,7 @@ func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers net
 		cookies = []http.Cookie{}
 	}
 
-	err = chromedp.Run(ctxN,
+	err = chromedp.Run(ctx,
 		setheaders(headers),
 		setcookies(cookies),
 		chromedp.Navigate(URL),
