@@ -4,20 +4,18 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
-// runChromeDP Acts as the baseline running of chromeDP with optional additional actions.
-// In the default case it will configure chromedp to use a proxy, include the cookies and headers, navigate to the URL, and then sleep the wait time
-func runChromeDP(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration, proxy string, actions ...chromedp.Action) (err error) {
+// runChromeDP Takes the PageRequest and performs the actual request
+func (p *PageRequest) runChromeDP(ctx context.Context) (err error) {
 	// Build proxy context
 	var cancel context.CancelFunc
-	if proxy != "" {
-		opts := append(chromedp.DefaultExecAllocatorOptions[:], chromedp.ProxyServer(proxy))
+	if p.proxy != "" {
+		opts := append(chromedp.DefaultExecAllocatorOptions[:], chromedp.ProxyServer(p.proxy))
 		ctx, cancel = chromedp.NewExecAllocator(ctx, opts...)
 	}
 	// Build chromedp context
@@ -25,16 +23,16 @@ func runChromeDP(ctx context.Context, URL string, cookies []http.Cookie, headers
 	defer cancel()
 
 	// Check headers and cookies
-	if headers == nil {
-		headers = network.Headers{}
+	if p.headers == nil {
+		p.headers = network.Headers{}
 	}
-	if cookies == nil {
-		cookies = []http.Cookie{}
+	if p.cookies == nil {
+		p.cookies = []http.Cookie{}
 	}
 
 	// Build and run actions
-	newActions := []chromedp.Action{setheaders(headers), setcookies(cookies), chromedp.Navigate(URL), chromedp.Sleep(waitTime)}
-	for _, action := range actions {
+	newActions := []chromedp.Action{setheaders(p.headers), setcookies(p.cookies), chromedp.Navigate(p.url), chromedp.Sleep(p.waitTime)}
+	for _, action := range p.actions {
 		newActions = append(newActions, action)
 	}
 	err = chromedp.Run(ctx, newActions...)

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const HTMLTest = `<html>
+const htmlTest = `<html>
 <script>
     function changeContent() {
         document.getElementById("content").innerHTML = "test";
@@ -36,7 +36,7 @@ func TestGetPage(t *testing.T) {
 				t.Errorf("Error getting test cookie")
 			}
 		}
-		w.Write([]byte(HTMLTest))
+		w.Write([]byte(htmlTest))
 	}))
 	defer ts.Close()
 
@@ -46,7 +46,12 @@ func TestGetPage(t *testing.T) {
 		return
 	}
 
-	html, err := GetPage(context.Background(), ts.URL, []http.Cookie{{Name: "test", Value: "testValue", Domain: URL.Hostname(), Expires: time.Now().Add(time.Hour * 5000)}}, nil, time.Second)
+	var html string
+	err = NewPageRequest(ts.URL).
+		WithCookies([]http.Cookie{{Name: "test", Value: "testValue", Domain: URL.Hostname(), Expires: time.Now().Add(time.Hour * 5000)}}).
+		WithWaitTime(time.Second).
+		WithHTMLGet(&html).
+		Do(context.Background())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -70,12 +75,12 @@ func TestGetPageProxy(t *testing.T) {
 	}
 
 	// Try without proxy
-	html, err := GetPageProxy(context.Background(), "http://ip4.me", nil, nil, time.Second*3, "")
+	var html string
+	err = NewPageRequest("http://ip4.me").WithWaitTime(time.Second * 3).WithHTMLGet(&html).Do(context.Background())
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	ioutil.WriteFile("out.html", []byte(html), 0644)
 
 	// Check to make sure it DID NOT used our ip
 	if strings.Index(html, URL.Hostname()) != -1 {
@@ -83,12 +88,11 @@ func TestGetPageProxy(t *testing.T) {
 	}
 
 	// Try with proxy
-	html, err = GetPageProxy(context.Background(), "http://ip4.me", nil, nil, time.Second*3, testProxy)
+	err = NewPageRequest("http://ip4.me").WithWaitTime(time.Second * 3).WithHTMLGet(&html).WithProxy(testProxy).Do(context.Background())
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	ioutil.WriteFile("out.html", []byte(html), 0644)
 
 	// Check to make sure it DID use our ip
 	if strings.Index(html, URL.Hostname()) == -1 {
@@ -97,9 +101,10 @@ func TestGetPageProxy(t *testing.T) {
 }
 
 func TestScreenshot(t *testing.T) {
-	picture, err := GetPageScreenshot(context.Background(), "http://ip4.me", nil, nil, time.Second*2, "")
+	var screenshot []byte
+	err := NewPageRequest("http://ip4.me").WithWaitTime(time.Second * 3).WithScreenshotGet(&screenshot).Do(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
-	ioutil.WriteFile("out.png", picture, 0644)
+	ioutil.WriteFile("out.png", screenshot, 0644)
 }
