@@ -26,7 +26,7 @@ const HTMLTest = `<html>
 
 </html>`
 
-func TestChrome(t *testing.T) {
+func TestGetPage(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("test")
 		if err != nil {
@@ -62,7 +62,7 @@ const (
 	testProxy = "socks4://171.103.9.22:4145"
 )
 
-func TestProxy(t *testing.T) {
+func TestGetPageProxy(t *testing.T) {
 	// Parse proxy
 	URL, err := url.Parse(testProxy)
 	if err != nil {
