@@ -3,6 +3,7 @@ package simplebrowser
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -54,5 +55,43 @@ func TestChrome(t *testing.T) {
 	if strings.Index(html, `<div id="content">test</div>`) == -1 {
 		fmt.Println(html)
 		t.Errorf("Did not get changed content in div")
+	}
+}
+
+const (
+	testProxy = "socks4://171.103.9.22:4145"
+)
+
+func TestProxy(t *testing.T) {
+	// Parse proxy
+	URL, err := url.Parse(testProxy)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Try without proxy
+	html, err := GetPageProxy(context.Background(), "http://ip4.me", nil, nil, time.Second*3, "")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ioutil.WriteFile("out.html", []byte(html), 0644)
+
+	// Check to make sure it DID NOT used our ip
+	if strings.Index(html, URL.Hostname()) != -1 {
+		t.Errorf("Did not use our ip address")
+	}
+
+	// Try with proxy
+	html, err = GetPageProxy(context.Background(), "http://ip4.me", nil, nil, time.Second*3, testProxy)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ioutil.WriteFile("out.html", []byte(html), 0644)
+
+	// Check to make sure it DID use our ip
+	if strings.Index(html, URL.Hostname()) == -1 {
+		t.Errorf("Did not use our ip address")
 	}
 }
