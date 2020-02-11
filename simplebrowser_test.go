@@ -95,3 +95,11 @@ func TestGetPageProxy(t *testing.T) {
 		t.Errorf("Did not use our ip address")
 	}
 }
+
+func TestScreenshot(t *testing.T) {
+	picture, err := GetPageScreenshot(context.Background(), "http://ip4.me", nil, nil, time.Second*2, "")
+	if err != nil {
+		t.Error(err)
+	}
+	ioutil.WriteFile("out.png", picture, 0644)
+}
