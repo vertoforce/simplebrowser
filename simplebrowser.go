@@ -10,33 +10,70 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// GetPage Get HTML of page after waiting waitTime for javascript to run
-func GetPage(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration) (html string, err error) {
-	return GetPageProxy(ctx, URL, cookies, headers, waitTime, "")
+const (
+	DefaultWaitTime = time.Second * 2
+)
+
+// PageRequest A request object to get a page with optional cookies, headers, and proxy
+type PageRequest struct {
+	url      string
+	cookies  []http.Cookie
+	headers  network.Headers
+	waitTime time.Duration
+	actions  []chromedp.Action
+	proxy    string
 }
 
-// GetPageProxy is the same as GetPage but uses a proxy
-func GetPageProxy(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration, proxy string) (html string, err error) {
-	err = runChromeDP(ctx,
-		URL,
-		cookies,
-		headers,
-		waitTime,
-		proxy,
-		chromedp.OuterHTML("html", &html),
-	)
-	return html, err
+// NewPageRequest returns a basic PageRequest with default WiatTime
+func NewPageRequest(URL string) *PageRequest {
+	return &PageRequest{
+		waitTime: DefaultWaitTime,
+		url:      URL,
+	}
 }
 
-// GetPageScreenshot same as GetPage but takes a screenshot of the page
-func GetPageScreenshot(ctx context.Context, URL string, cookies []http.Cookie, headers network.Headers, waitTime time.Duration, proxy string) (pngScreenshot []byte, err error) {
-	err = runChromeDP(ctx,
-		URL,
-		cookies,
-		headers,
-		waitTime,
-		proxy,
-		chromedp.CaptureScreenshot(&pngScreenshot),
-	)
-	return pngScreenshot, err
+// WithCookies Add cookies to PageRequest
+func (p *PageRequest) WithCookies(cookies []http.Cookie) *PageRequest {
+	p.cookies = cookies
+	return p
+}
+
+// WithHeaders Add headers to PageRequest
+func (p *PageRequest) WithHeaders(headers network.Headers) *PageRequest {
+	p.headers = headers
+	return p
+}
+
+// WithProxy Add Proxy to PageRequest.  A proxy can be a string like socks4://ip:port
+func (p *PageRequest) WithProxy(proxy string) *PageRequest {
+	p.proxy = proxy
+	return p
+}
+
+// WithWaitTime Add specific wait time to PageRequest, WaitTime is the time it will wait for the page to load before performing further actions
+func (p *PageRequest) WithWaitTime(waitTime time.Duration) *PageRequest {
+	p.waitTime = waitTime
+	return p
+}
+
+// WithActions Add actions to request
+func (p *PageRequest) WithActions(actions ...chromedp.Action) *PageRequest {
+	p.actions = append(p.actions, actions...)
+	return p
+}
+
+// WithHTMLGet Will place the html of the page in the string after the request is made
+func (p *PageRequest) WithHTMLGet(html *string) *PageRequest {
+	return p.WithActions(chromedp.OuterHTML("html", html))
+}
+
+// WithScreenshotGet Will get a screenshot of the page after the request is made
+func (p *PageRequest) WithScreenshotGet(pngScreenshot *[]byte) *PageRequest {
+	return p.WithActions(chromedp.CaptureScreenshot(pngScreenshot))
+
+}
+
+// Do Perform the actual PageRequest
+func (p *PageRequest) Do(ctx context.Context) error {
+	return p.runChromeDP(ctx)
 }

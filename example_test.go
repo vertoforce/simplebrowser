@@ -9,12 +9,13 @@ import (
 	"time"
 )
 
-func ExampleGetPage() {
-	html, _ := GetPage(context.Background(), "https://google.com", nil, map[string]interface{}{}, time.Second)
+func ExamplePageRequest() {
+	var html string
+	_ = NewPageRequest("https://google.com").WithHTMLGet(&html).Do(context.Background())
 	fmt.Println(html)
 }
 
-func ExampleGetPage_withContent() {
+func ExamplePageRequest_withContent() {
 	// Create testing server
 	var HTMLExample = `<html>
 <script>
@@ -35,7 +36,8 @@ func ExampleGetPage_withContent() {
 	defer ts.Close()
 
 	// Get page and wait for javascript to change div
-	html, err := GetPage(context.Background(), ts.URL, nil, map[string]interface{}{}, time.Second)
+	var html string
+	err := NewPageRequest(ts.URL).WithWaitTime(time.Second).WithHTMLGet(&html).Do(context.Background())
 	if err != nil {
 		return
 	}
