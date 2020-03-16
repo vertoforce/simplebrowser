@@ -67,10 +67,9 @@ func (p *PageRequest) WithHTMLGet(html *string) *PageRequest {
 	return p.WithActions(chromedp.OuterHTML("html", html))
 }
 
-// WithScreenshotGet Will get a screenshot of the page after the request is made
+// WithScreenshotGet Will get a screenshot of the page after the request is made and load it in to the []byte pointer in png format.
 func (p *PageRequest) WithScreenshotGet(pngScreenshot *[]byte) *PageRequest {
 	return p.WithActions(chromedp.CaptureScreenshot(pngScreenshot))
-
 }
 
 // Do Perform the actual PageRequest
