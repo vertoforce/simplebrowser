@@ -31,10 +31,10 @@ func (p *PageRequest) runChromeDP(ctx context.Context) (err error) {
 	}
 
 	// Build and run actions
-	newActions := []chromedp.Action{setheaders(p.headers), setcookies(p.cookies), chromedp.Navigate(p.url), chromedp.Sleep(p.waitTime)}
-	for _, action := range p.actions {
-		newActions = append(newActions, action)
-	}
+	newActions := []chromedp.Action{setheaders(p.headers), setcookies(p.cookies)}
+	newActions = append(newActions, p.preActions...)
+	newActions = append(newActions, chromedp.Navigate(p.url), chromedp.Sleep(p.waitTime))
+	newActions = append(newActions, p.postActions...)
 	err = chromedp.Run(ctx, newActions...)
 
 	return err
