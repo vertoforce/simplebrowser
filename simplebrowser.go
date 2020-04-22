@@ -16,19 +16,23 @@ const (
 
 // PageRequest A request object to get a page with optional cookies, headers, and proxy
 type PageRequest struct {
-	url      string
-	cookies  []http.Cookie
-	headers  network.Headers
-	waitTime time.Duration
-	actions  []chromedp.Action
-	proxy    string
+	url          string
+	cookies      []http.Cookie
+	headers      network.Headers
+	waitTime     time.Duration
+	actions      []chromedp.Action
+	screenWidth  int
+	screenHeight int
+	proxy        string
 }
 
-// NewPageRequest returns a basic PageRequest with default WiatTime
+// NewPageRequest returns a basic PageRequest with default WaitTime
 func NewPageRequest(URL string) *PageRequest {
 	return &PageRequest{
-		waitTime: DefaultWaitTime,
-		url:      URL,
+		waitTime:     DefaultWaitTime,
+		url:          URL,
+		screenHeight: 920,
+		screenWidth:  1090,
 	}
 }
 
@@ -47,6 +51,13 @@ func (p *PageRequest) WithHeaders(headers network.Headers) *PageRequest {
 // WithProxy Add Proxy to PageRequest.  A proxy can be a string like socks4://ip:port
 func (p *PageRequest) WithProxy(proxy string) *PageRequest {
 	p.proxy = proxy
+	return p
+}
+
+// WithScreenSize Sets the screen size of the window
+func (p *PageRequest) WithScreenSize(width, height int) *PageRequest {
+	p.screenWidth = width
+	p.screenHeight = height
 	return p
 }
 
