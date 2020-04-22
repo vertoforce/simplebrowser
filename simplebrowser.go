@@ -20,7 +20,8 @@ type PageRequest struct {
 	cookies      []http.Cookie
 	headers      network.Headers
 	waitTime     time.Duration
-	actions      []chromedp.Action
+	postActions  []chromedp.Action
+	preActions   []chromedp.Action
 	screenWidth  int
 	screenHeight int
 	proxy        string
@@ -67,20 +68,26 @@ func (p *PageRequest) WithWaitTime(waitTime time.Duration) *PageRequest {
 	return p
 }
 
-// WithActions Add actions to request
-func (p *PageRequest) WithActions(actions ...chromedp.Action) *PageRequest {
-	p.actions = append(p.actions, actions...)
+// WithPostActions Add actions after navigating to the page and after the sleep time
+func (p *PageRequest) WithPostActions(actions ...chromedp.Action) *PageRequest {
+	p.postActions = append(p.postActions, actions...)
+	return p
+}
+
+// WithPreActions Add actions for before navigating to the page
+func (p *PageRequest) WithPreActions(actions ...chromedp.Action) *PageRequest {
+	p.preActions = append(p.preActions, actions...)
 	return p
 }
 
 // WithHTMLGet Will place the html of the page in the string after the request is made
 func (p *PageRequest) WithHTMLGet(html *string) *PageRequest {
-	return p.WithActions(chromedp.OuterHTML("html", html))
+	return p.WithPostActions(chromedp.OuterHTML("html", html))
 }
 
 // WithScreenshotGet Will get a screenshot of the page after the request is made and load it in to the []byte pointer in png format.
 func (p *PageRequest) WithScreenshotGet(pngScreenshot *[]byte) *PageRequest {
-	return p.WithActions(chromedp.CaptureScreenshot(pngScreenshot))
+	return p.WithPostActions(chromedp.CaptureScreenshot(pngScreenshot))
 }
 
 // Do Perform the actual PageRequest
