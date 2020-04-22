@@ -15,7 +15,7 @@ func (p *PageRequest) runChromeDP(ctx context.Context) (err error) {
 	// Build proxy context
 	var cancel context.CancelFunc
 	if p.proxy != "" {
-		opts := append(chromedp.DefaultExecAllocatorOptions[:], chromedp.ProxyServer(p.proxy))
+		opts := append(chromedp.DefaultExecAllocatorOptions[:], chromedp.ProxyServer(p.proxy), chromedp.WindowSize(p.screenWidth, p.screenHeight))
 		ctx, cancel = chromedp.NewExecAllocator(ctx, opts...)
 	}
 	// Build chromedp context
