@@ -2,11 +2,15 @@
 package simplebrowser
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
@@ -59,6 +63,28 @@ func (p *PageRequest) WithProxy(proxy string) *PageRequest {
 func (p *PageRequest) WithScreenSize(width, height int) *PageRequest {
 	p.screenWidth = width
 	p.screenHeight = height
+	return p
+}
+
+// WithJavascript
+func (p *PageRequest) WithJavascript(js string) *PageRequest {
+	chromedp.CallbackFunc("Page.loadEventFired", func(param interface{}, handler *cdp.TargetHandler) {
+
+		var res *runtime.RemoteObject
+
+		c.Run(ctx, chromedp.Evaluate(`your js`, &res))
+
+		json_byte, _ := res.MarshalJSON()
+
+		var out bytes.Buffer
+
+		_ = json.Indent(&out, json_byte, "", "\t")
+
+		fmt.Println(out.String())
+
+	}),
+
+		p.postActions = append(p.preActions)
 	return p
 }
 
